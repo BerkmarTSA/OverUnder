@@ -28,8 +28,6 @@ brain=Brain()
 
 brain.screen.print("Hello V5")
 
-
-# Ports.py defines the ports we use
 # We want to dynamically change ports and active devices
 
 # Lets Init our Motors
