@@ -73,13 +73,13 @@ def leftHoriMove():
     brain.screen.print("\n",range)
     print("Horizon Axis: ", range)
     if range > 0:
-        ctrl.ActiveTurn = LEFT
-    elif range < 0:
         ctrl.ActiveTurn = RIGHT
+    elif range < 0:
+        ctrl.ActiveTurn = LEFT
     Body.set_turn_velocity(abs(range / 2), PERCENT)
     Body.turn(ctrl.ActiveTurn)
 
-def rightArmMove():
+def armMove():
     # TODO: Limit the range of the arms!!
     range = ctrl.RightVert.position()
     brain.screen.print("/n", range)
@@ -89,9 +89,12 @@ def rightArmMove():
     elif range < 0:
         Arms.set_velocity((Arms.velocity() - (abs(range))) / 2)
     Arms.spin(FORWARD)
+    
 
+
+# Initially reset the arms
 
 ctrl.LeftVert.changed(leftVertMove)
 ctrl.LeftHori.changed(leftHoriMove)
-ctrl.RightVert.changed(rightArmMove)
+ctrl.RightVert.changed(armMove)
 # test()
