@@ -41,43 +41,39 @@ LeftMotor = MotorGroup(LeftTMtr,LeftBMtr)
 RightMotor = MotorGroup(RightTMtr,RightBMtr)
 Body = DriveTrain(LeftMotor,RightMotor)
 
-def changeSpeed():
-    range = ctrl.LeftVert.position()
-    brain.screen.print(range)
-    if range > 0:
-        Body.set_drive_velocity(100, PERCENT)
-        ctrl.ActiveRange = FORWARD
-    elif range < 0:
-        Body.set_drive_velocity(50, PERCENT)
-        ctrl.ActiveRange = REVERSE
-    else:
-        Body.set_drive_velocity(0)
-    range = ctrl.LeftHori.position()
-    if range > 0:
-        ctrl.ActiveTurn = LEFT
-    elif range < 0:
-        ctrl.ActiveTurn = RIGHT
-    Body.set_turn_velocity(abs(range), PERCENT)
-
-def move():
-    changeSpeed()
-    if ctrl.ActiveTurn == LEFT:
-        Body.turn(LEFT)
-    elif ctrl.ActiveTurn == RIGHT:
-        Body.turn(RIGHT)
-    if ctrl.ActiveRange == FORWARD:
-        Body.drive(FORWARD)
-    elif ctrl.ActiveRange == REVERSE:
-        Body.drive(REVERSE)
-
 def test():
     # We refer to the group of all the Motors as the Body    
     Body.set_drive_velocity(100, PERCENT)
     Body.drive_for(FORWARD, 12, INCHES)
     time.sleep(3)
     Body.drive_for(REVERSE, 12, INCHES)
-    
-while True:
-     move()
 
+def leftVertMove():
+    range = ctrl.LeftVert.position()
+    brain.screen.print("\n",range)
+    print("Vert Axis: ", range)
+    if range > 0:
+        Body.set_drive_velocity(100, PERCENT)
+        ctrl.ActiveRange = FORWARD
+    elif range < 0:
+        Body.set_drive_velocity(100, PERCENT)
+        ctrl.ActiveRange = REVERSE
+    else:
+        Body.set_drive_velocity(0)
+    Body.drive(ctrl.ActiveRange)
+
+def leftHoriMove():
+    range = ctrl.LeftHori.position()
+    brain.screen.print("\n",range)
+    print("Horizon Axis: ", range)
+    if range > 0:
+        ctrl.ActiveTurn = LEFT
+    elif range < 0:
+        ctrl.ActiveTurn = RIGHT
+    Body.set_turn_velocity(abs(range / 2), PERCENT)
+    Body.turn(ctrl.ActiveTurn)
+
+
+ctrl.LeftVert.changed(leftVertMove)
+ctrl.LeftHori.changed(leftHoriMove)
 # test()
