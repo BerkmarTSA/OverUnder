@@ -7,6 +7,10 @@ class ports:
     LeftBtmPort =  Ports.PORT4
     RightTopPort = Ports.PORT1
     RightBtmPort = Ports.PORT3
+    RightARM = Ports.PORT11
+    LeftARM = Ports.PORT12
+    Extra3 = Ports.PORT19
+    Extra4 = Ports.PORT20
 
 class gears:
     RedGear = GearSetting.RATIO_36_1
@@ -35,10 +39,12 @@ LeftTMtr = Motor(ports.LeftTopPort, gears.GreenGear, False)
 LeftBMtr = Motor(ports.LeftBtmPort, gears.GreenGear, False)
 RightTMtr = Motor(ports.RightTopPort, gears.GreenGear, True)
 RightBMtr= Motor(ports.RightBtmPort, gears.GreenGear, True)
-
+LeftArm= Motor(ports.LeftARM, gears.GreenGear)
+RightArm= Motor(ports.RightARM, gears.GreenGear)
 # These are the motor objects we use. They are MotorGroups which control serveral motors at oncce.
 LeftMotor = MotorGroup(LeftTMtr,LeftBMtr)
 RightMotor = MotorGroup(RightTMtr,RightBMtr)
+Arms= MotorGroup(LeftArm,RightArm)
 Body = DriveTrain(LeftMotor,RightMotor)
 
 def test():
@@ -73,7 +79,19 @@ def leftHoriMove():
     Body.set_turn_velocity(abs(range / 2), PERCENT)
     Body.turn(ctrl.ActiveTurn)
 
+def rightArmMove():
+    # TODO: Limit the range of the arms!!
+    range = ctrl.RightVert.position()
+    brain.screen.print("/n", range)
+    print("Right Arm Axis: ", range)
+    if range > 0:
+        Arms.set_velocity((range / 2), PERCENT)
+    elif range < 0:
+        Arms.set_velocity((Arms.velocity() - (abs(range))) / 2)
+    Arms.spin(FORWARD)
+
 
 ctrl.LeftVert.changed(leftVertMove)
 ctrl.LeftHori.changed(leftHoriMove)
+ctrl.RightVert.changed(rightArmMove)
 # test()
