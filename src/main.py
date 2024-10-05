@@ -21,10 +21,14 @@ class ctrl:
     controller = Controller()
     ActiveRange = FORWARD
     ActiveTurn = LEFT
+    ActiveRArms = FORWARD
+    ActiveLArms = FORWARD
     RightHori = controller.axis1
     RightVert = controller.axis2
     LeftVert = controller.axis3
     LeftHori = controller.axis4
+    XBtn = controller.buttonX
+    BBtn = controller.buttonB
     
 
 # Brain should be defined by default
@@ -39,12 +43,11 @@ LeftTMtr = Motor(ports.LeftTopPort, gears.GreenGear, False)
 LeftBMtr = Motor(ports.LeftBtmPort, gears.GreenGear, False)
 RightTMtr = Motor(ports.RightTopPort, gears.GreenGear, True)
 RightBMtr= Motor(ports.RightBtmPort, gears.GreenGear, True)
-LeftArm= Motor(ports.LeftARM, gears.GreenGear)
-RightArm= Motor(ports.RightARM, gears.GreenGear)
+LeftArm= Motor(ports.LeftARM, gears.GreenGear, False)
+RightArm= Motor(ports.RightARM, gears.GreenGear, True)
 # These are the motor objects we use. They are MotorGroups which control serveral motors at oncce.
 LeftMotor = MotorGroup(LeftTMtr,LeftBMtr)
 RightMotor = MotorGroup(RightTMtr,RightBMtr)
-Arms= MotorGroup(LeftArm,RightArm)
 Body = DriveTrain(LeftMotor,RightMotor)
 
 def test():
@@ -59,15 +62,11 @@ def leftVertMove():
     brain.screen.print("\n",range)
     print("Vert Axis: ", range)
     if range > 0:
-        Body.set_drive_velocity(100, PERCENT)
         ctrl.ActiveRange = FORWARD
     elif range < 0:
-        Body.set_drive_velocity(100, PERCENT)
         ctrl.ActiveRange = REVERSE
-    else:
-        Body.set_drive_velocity(0)
     Body.drive(ctrl.ActiveRange)
-
+    
 def leftHoriMove():
     range = ctrl.LeftHori.position()
     brain.screen.print("\n",range)
@@ -79,22 +78,54 @@ def leftHoriMove():
     Body.set_turn_velocity(abs(range / 2), PERCENT)
     Body.turn(ctrl.ActiveTurn)
 
-def armMove():
-    # TODO: Limit the range of the arms!!
+def rightVertMove():
     range = ctrl.RightVert.position()
-    brain.screen.print("/n", range)
-    print("Right Arm Axis: ", range)
+    brain.screen.print("\n",range)
+    print("Vert Axis: ", range)
     if range > 0:
-        Arms.set_velocity((range / 2), PERCENT)
+        Body.set_drive_velocity(range, PERCENT)
     elif range < 0:
-        Arms.set_velocity((Arms.velocity() - (abs(range))) / 2)
-    Arms.spin(FORWARD)
+        Body.set_drive_velocity(abs(range), PERCENT)
+    else:
+        Body.set_drive_velocity(0)
     
 
+def armMove(range):
+    # TODO: Limit the range of the arms!!
+    brain.screen.print("/n", range)
+    print("Right Arm Axis: ", range)
+    print(LeftArm.position())
+    print(RightArm.position())
+    if range == "X":
+        RightArm.set_velocity(100, PERCENT)
+        LeftArm.set_velocity(RightArm.velocity())
+        ctrl.ActiveRArms = FORWARD
+        ctrl.ActiveLArms = REVERSE
+    elif range == "B":
+        RightArm.set_velocity(100, PERCENT)
+        LeftArm.set_velocity(RightArm.velocity())
+        ctrl.ActiveRArms = REVERSE
+        ctrl.ActiveLArms = FORWARD
+    else:
+        RightArm.set_velocity(0)
+        
+    if (RightArm.position() > 125) and (RightArm.position() < 330):
+        RightArm.spin(ctrl.ActiveRArms)
+        LeftArm.spin(ctrl.ActiveLArms)
+        
+    # Arms.spin(FORWARD)
+    
 
-# Initially reset the arms
-
+# intiallzy reset the position
+# Sync the arms up so our lazy coding works
+RightArm.set_position(125, DEGREES)
+LeftArm.set_position(-125, DEGREES)
 ctrl.LeftVert.changed(leftVertMove)
 ctrl.LeftHori.changed(leftHoriMove)
-ctrl.RightVert.changed(armMove)
+ctrl.RightVert.changed(leftVertMove)
+ctrl.XBtn.pressed(armMove, ("X",))
+ctrl.BBtn.pressed(armMove, ("B",))
+ctrl.XBtn.released(armMove, ("None",))
+ctrl.BBtn.released(armMove, ("None",))
+# ctrl.RightVert.changed(rightVertPower)
 # test()
