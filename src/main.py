@@ -9,7 +9,7 @@ class ports:
     RightBtmPort = Ports.PORT3
     RightARM = Ports.PORT11
     LeftARM = Ports.PORT12
-    Extra3 = Ports.PORT19
+    Chain = Ports.PORT19
     Extra4 = Ports.PORT20
 
 class gears:
@@ -29,6 +29,8 @@ class ctrl:
     LeftHori = controller.axis4
     XBtn = controller.buttonX
     BBtn = controller.buttonB
+    RSb = controller.buttonR1
+    RTr = controller.buttonR2
     
 
 # Brain should be defined by default
@@ -44,7 +46,8 @@ LeftBMtr = Motor(ports.LeftBtmPort, gears.GreenGear, False)
 RightTMtr = Motor(ports.RightTopPort, gears.GreenGear, True)
 RightBMtr= Motor(ports.RightBtmPort, gears.GreenGear, True)
 LeftArm= Motor(ports.LeftARM, gears.GreenGear, False)
-RightArm= Motor(ports.RightARM, gears.GreenGear, True)
+RightArm= Motor(ports.RightARM, gears.GreenGear, False)
+Chain= Motor(ports.Chain, gears.GreenGear, False)
 # These are the motor objects we use. They are MotorGroups which control serveral motors at oncce.
 LeftMotor = MotorGroup(LeftTMtr,LeftBMtr)
 RightMotor = MotorGroup(RightTMtr,RightBMtr)
@@ -65,7 +68,7 @@ def leftVertMove():
         ctrl.ActiveRange = FORWARD
     elif range < 0:
         ctrl.ActiveRange = REVERSE
-    Body.drive(ctrl.ActiveRange)
+    Body.drive(ctrl.ActiveRange, Body.velocity())
     
 def leftHoriMove():
     range = ctrl.LeftHori.position()
@@ -88,44 +91,62 @@ def rightVertMove():
         Body.set_drive_velocity(abs(range), PERCENT)
     else:
         Body.set_drive_velocity(0)
-    
 
 def armMove(range):
-    # TODO: Limit the range of the arms!!
+    # TODO: Don't limit the range of the arms!!
     brain.screen.print("/n", range)
     print("Right Arm Axis: ", range)
     print(LeftArm.position())
     print(RightArm.position())
+    # Bring the Arm Up
     if range == "X":
         RightArm.set_velocity(100, PERCENT)
-        LeftArm.set_velocity(RightArm.velocity())
+        LeftArm.set_velocity(100, PERCENT)
         ctrl.ActiveRArms = FORWARD
         ctrl.ActiveLArms = REVERSE
+        RightArm.spin_to_position(245, DEGREES, 100, PERCENT, False)
+        LeftArm.spin_to_position(-245, DEGREES, 100, PERCENT, False)
+    # Bring the Arm Down
     elif range == "B":
         RightArm.set_velocity(100, PERCENT)
-        LeftArm.set_velocity(RightArm.velocity())
+        LeftArm.set_velocity(100, PERCENT)
         ctrl.ActiveRArms = REVERSE
         ctrl.ActiveLArms = FORWARD
+        RightArm.spin_to_position(-10, DEGREES, 100, PERCENT, False)
+        LeftArm.spin_to_position(10, DEGREES, 100, PERCENT, False)
     else:
         RightArm.set_velocity(0)
-        
-    if (RightArm.position() > 125) and (RightArm.position() < 330):
-        RightArm.spin(ctrl.ActiveRArms)
-        LeftArm.spin(ctrl.ActiveLArms)
-        
+        LeftArm.set_velocity(0)
+
+# TODO: Check chain spinning     
+def chainMove(input):
+    if (input == "R1"):
+        print("Right Shoulder button pressed")
+        Chain.set_velocity(100, PERCENT)
+        Chain.spin(FORWARD)
+    elif (input == "R2"):
+        print("Right trigger pressed")
+        Chain.set_velocity(100, PERCENT)
+        Chain.spin(REVERSE)
+    else:
+        print("Buttons released")
+        Chain.stop()
     # Arms.spin(FORWARD)
     
 
-# intiallzy reset the position
-# Sync the arms up so our lazy coding works
-RightArm.set_position(125, DEGREES)
-LeftArm.set_position(-125, DEGREES)
+# ? We don't want to reset the arm position (as per moses's request)
+RightArm.reset_position()
+LeftArm.reset_position()
 ctrl.LeftVert.changed(leftVertMove)
-ctrl.LeftHori.changed(leftHoriMove)
+ctrl.LeftHori.changed(leftHoriMove) 
 ctrl.RightVert.changed(rightVertMove)
 ctrl.XBtn.pressed(armMove, ("X",))
 ctrl.BBtn.pressed(armMove, ("B",))
-ctrl.XBtn.released(armMove, ("None",))
+ctrl.RSb.pressed(chainMove, ("R1",))
+ctrl.RTr.pressed(chainMove, ("R2",))
 ctrl.BBtn.released(armMove, ("None",))
+ctrl.XBtn.released(armMove, ("None",))
+ctrl.RTr.released(chainMove, ("None",))
+ctrl.RSb.released(chainMove, ("None",))
 # ctrl.RightVert.changed(rightVertPower)
 # test()
