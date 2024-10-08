@@ -10,7 +10,7 @@ class ports:
     RightARM = Ports.PORT11
     LeftARM = Ports.PORT12
     Chain = Ports.PORT19
-    Extra4 = Ports.PORT20
+    Elevator = Ports.PORT20
 
 class gears:
     RedGear = GearSetting.RATIO_36_1
@@ -31,7 +31,8 @@ class ctrl:
     BBtn = controller.buttonB
     RSb = controller.buttonR1
     RTr = controller.buttonR2
-    
+    LSb = controller.buttonL1
+    LTr = controller.buttonL2
 
 # Brain should be defined by default
 brain=Brain()
@@ -48,6 +49,7 @@ RightBMtr= Motor(ports.RightBtmPort, gears.GreenGear, True)
 LeftArm= Motor(ports.LeftARM, gears.GreenGear, False)
 RightArm= Motor(ports.RightARM, gears.GreenGear, False)
 Chain= Motor(ports.Chain, gears.GreenGear, False)
+Elevator= Motor(ports.Elevator, gears.GreenGear, False)
 # These are the motor objects we use. They are MotorGroups which control serveral motors at oncce.
 LeftMotor = MotorGroup(LeftTMtr,LeftBMtr)
 RightMotor = MotorGroup(RightTMtr,RightBMtr)
@@ -61,36 +63,34 @@ def test():
     Body.drive_for(REVERSE, 12, INCHES)
 
 def leftVertMove():
-    range = ctrl.LeftVert.position()
+    range = ctrl.RightVert.position()
     brain.screen.print("\n",range)
     print("Vert Axis: ", range)
     if range > 0:
+        Body.set_drive_velocity(range, PERCENT)
         ctrl.ActiveRange = FORWARD
+        Body.drive(ctrl.ActiveRange)
     elif range < 0:
+        Body.set_drive_velocity(abs(range), PERCENT)
         ctrl.ActiveRange = REVERSE
-    Body.drive(ctrl.ActiveRange, Body.velocity())
-    
+        Body.drive(ctrl.ActiveRange)
+    else:
+        Body.set_drive_velocity(0)
+
 def leftHoriMove():
     range = ctrl.LeftHori.position()
     brain.screen.print("\n",range)
     print("Horizon Axis: ", range)
     if range > 0:
         ctrl.ActiveTurn = RIGHT
+        Body.set_turn_velocity(abs(range / 2), PERCENT)
+        Body.turn(ctrl.ActiveTurn)
     elif range < 0:
         ctrl.ActiveTurn = LEFT
-    Body.set_turn_velocity(abs(range / 2), PERCENT)
-    Body.turn(ctrl.ActiveTurn)
-
-def rightVertMove():
-    range = ctrl.RightVert.position()
-    brain.screen.print("\n",range)
-    print("Vert Axis: ", range)
-    if range > 0:
-        Body.set_drive_velocity(range, PERCENT)
-    elif range < 0:
-        Body.set_drive_velocity(abs(range), PERCENT)
+        Body.set_turn_velocity(abs(range / 2), PERCENT)
+        Body.turn(ctrl.ActiveTurn)
     else:
-        Body.set_drive_velocity(0)
+        Body.set_turn_velocity(0)
 
 def armMove(range):
     # TODO: Don't limit the range of the arms!!
@@ -104,49 +104,68 @@ def armMove(range):
         LeftArm.set_velocity(100, PERCENT)
         ctrl.ActiveRArms = FORWARD
         ctrl.ActiveLArms = REVERSE
-        RightArm.spin_to_position(245, DEGREES, 100, PERCENT, False)
-        LeftArm.spin_to_position(-245, DEGREES, 100, PERCENT, False)
+        RightArm.spin(ctrl.ActiveRArms)
+        LeftArm.spin(ctrl.ActiveLArms)
     # Bring the Arm Down
     elif range == "B":
         RightArm.set_velocity(100, PERCENT)
         LeftArm.set_velocity(100, PERCENT)
         ctrl.ActiveRArms = REVERSE
         ctrl.ActiveLArms = FORWARD
-        RightArm.spin_to_position(-10, DEGREES, 100, PERCENT, False)
-        LeftArm.spin_to_position(10, DEGREES, 100, PERCENT, False)
+        RightArm.spin(ctrl.ActiveRArms)
+        LeftArm.spin(ctrl.ActiveLArms)
     else:
         RightArm.set_velocity(0)
         LeftArm.set_velocity(0)
+        RightArm.stop()
+        LeftArm.stop()
 
 # TODO: Check chain spinning     
 def chainMove(input):
     if (input == "R1"):
         print("Right Shoulder button pressed")
         Chain.set_velocity(100, PERCENT)
-        Chain.spin(FORWARD)
+        Chain.spin(REVERSE)
     elif (input == "R2"):
         print("Right trigger pressed")
         Chain.set_velocity(100, PERCENT)
-        Chain.spin(REVERSE)
+        Chain.spin(FORWARD)
     else:
         print("Buttons released")
         Chain.stop()
     # Arms.spin(FORWARD)
-    
+
+def elevator(input):
+    if (input == "L1"):
+        print("Left Shoulder button pressed")
+        Elevator.set_velocity(25, PERCENT)
+        Elevator.spin(FORWARD)
+    elif (input == "L2"):
+        print("Left trigger pressed")
+        Elevator.set_velocity(25, PERCENT)
+        Elevator.spin(REVERSE)
+    else:
+        print("Buttons released")
+        Elevator.stop()
+    # Arms.spin(FORWARD)
+
 
 # ? We don't want to reset the arm position (as per moses's request)
 RightArm.reset_position()
 LeftArm.reset_position()
-ctrl.LeftVert.changed(leftVertMove)
-ctrl.LeftHori.changed(leftHoriMove) 
-ctrl.RightVert.changed(rightVertMove)
+ctrl.RightVert.changed(leftVertMove)
+ctrl.LeftHori.changed(leftHoriMove)
 ctrl.XBtn.pressed(armMove, ("X",))
 ctrl.BBtn.pressed(armMove, ("B",))
 ctrl.RSb.pressed(chainMove, ("R1",))
 ctrl.RTr.pressed(chainMove, ("R2",))
+ctrl.LSb.pressed(elevator, ("L1",))
+ctrl.LTr.pressed(elevator, ("L2",))
 ctrl.BBtn.released(armMove, ("None",))
 ctrl.XBtn.released(armMove, ("None",))
 ctrl.RTr.released(chainMove, ("None",))
 ctrl.RSb.released(chainMove, ("None",))
+ctrl.LTr.released(elevator, ("None",))
+ctrl.LSb.released(elevator, ("None",))
 # ctrl.RightVert.changed(rightVertPower)
 # test()
