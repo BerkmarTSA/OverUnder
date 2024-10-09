@@ -153,6 +153,8 @@ def elevatorMove(input):
 # ? We don't want to reset the arm position (as per moses's request)
 RightArm.reset_position()
 LeftArm.reset_position()
+Body.set_turn_velocity(0)
+Body.set_drive_velocity(0)
 ctrl.RightVert.changed(leftVertMove)
 ctrl.LeftHori.changed(leftHoriMove)
 ctrl.XBtn.pressed(armMove, ("X",))
