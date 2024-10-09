@@ -135,14 +135,14 @@ def chainMove(input):
         Chain.stop()
     # Arms.spin(FORWARD)
 
-def elevator(input):
+def elevatorMove(input):
     if (input == "L1"):
         print("Left Shoulder button pressed")
-        Elevator.set_velocity(25, PERCENT)
+        Elevator.set_velocity(100, PERCENT)
         Elevator.spin(FORWARD)
     elif (input == "L2"):
         print("Left trigger pressed")
-        Elevator.set_velocity(25, PERCENT)
+        Elevator.set_velocity(100, PERCENT)
         Elevator.spin(REVERSE)
     else:
         print("Buttons released")
@@ -159,13 +159,13 @@ ctrl.XBtn.pressed(armMove, ("X",))
 ctrl.BBtn.pressed(armMove, ("B",))
 ctrl.RSb.pressed(chainMove, ("R1",))
 ctrl.RTr.pressed(chainMove, ("R2",))
-ctrl.LSb.pressed(elevator, ("L1",))
-ctrl.LTr.pressed(elevator, ("L2",))
+ctrl.LSb.pressed(elevatorMove, ("L1",))
+ctrl.LTr.pressed(elevatorMove, ("L2",))
 ctrl.BBtn.released(armMove, ("None",))
 ctrl.XBtn.released(armMove, ("None",))
 ctrl.RTr.released(chainMove, ("None",))
 ctrl.RSb.released(chainMove, ("None",))
-ctrl.LTr.released(elevator, ("None",))
-ctrl.LSb.released(elevator, ("None",))
+ctrl.LTr.released(elevatorMove, ("None",))
+ctrl.LSb.released(elevatorMove, ("None",))
 # ctrl.RightVert.changed(rightVertPower)
 # test()
