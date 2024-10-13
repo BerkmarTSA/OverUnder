@@ -2,6 +2,8 @@
 from vex import *
 import time
 
+## CLASSES
+
 class ports:
     LeftTopPort =  Ports.PORT2
     LeftBtmPort =  Ports.PORT4
@@ -55,6 +57,8 @@ LeftMotor = MotorGroup(LeftTMtr,LeftBMtr)
 RightMotor = MotorGroup(RightTMtr,RightBMtr)
 Body = DriveTrain(LeftMotor,RightMotor)
 
+
+## DEFINITIONS
 def test():
     # We refer to the group of all the Motors as the Body    
     Body.set_drive_velocity(100, PERCENT)
@@ -64,15 +68,32 @@ def test():
 
 def leftVertMove():
     range = ctrl.RightVert.position()
+    LRange = ctrl.LeftHori.position()
     brain.screen.print("\n",range)
     print("Vert Axis: ", range)
-    if range > 0:
-        Body.set_drive_velocity(range, PERCENT)
-        ctrl.ActiveRange = FORWARD
-        Body.drive(ctrl.ActiveRange)
-    elif range < 0:
+    if range < 0:
         Body.set_drive_velocity(abs(range), PERCENT)
+        ctrl.ActiveRange = FORWARD
+        if (LRange > 0):
+            ctrl.ActiveTurn = RIGHT
+            Body.set_turn_velocity(abs(LRange / 2), PERCENT)
+            Body.turn(ctrl.ActiveTurn)
+        elif (LRange < 0):
+            ctrl.ActiveTurn = LEFT
+            Body.set_turn_velocity(abs(LRange / 2), PERCENT)
+            Body.turn(ctrl.ActiveTurn)
+        Body.drive(ctrl.ActiveRange)
+    elif range > 0:
+        Body.set_drive_velocity(range, PERCENT)
         ctrl.ActiveRange = REVERSE
+        if (LRange > 0):
+            ctrl.ActiveTurn = RIGHT
+            Body.set_turn_velocity(abs(LRange / 1.33), PERCENT)
+            Body.turn(ctrl.ActiveTurn)
+        elif (LRange < 0):
+            ctrl.ActiveTurn = LEFT
+            Body.set_turn_velocity(abs(LRange / 1.33), PERCENT)
+            Body.turn(ctrl.ActiveTurn)
         Body.drive(ctrl.ActiveRange)
     else:
         Body.set_drive_velocity(0)
@@ -83,11 +104,11 @@ def leftHoriMove():
     print("Horizon Axis: ", range)
     if range > 0:
         ctrl.ActiveTurn = RIGHT
-        Body.set_turn_velocity(abs(range / 2), PERCENT)
+        Body.set_turn_velocity(abs(range / 1.33), PERCENT)
         Body.turn(ctrl.ActiveTurn)
     elif range < 0:
         ctrl.ActiveTurn = LEFT
-        Body.set_turn_velocity(abs(range / 2), PERCENT)
+        Body.set_turn_velocity(abs(range / 1.33), PERCENT)
         Body.turn(ctrl.ActiveTurn)
     else:
         Body.set_turn_velocity(0)
@@ -149,6 +170,7 @@ def elevatorMove(input):
         Elevator.stop()
     # Arms.spin(FORWARD)
 
+## HANDLERS
 
 # ? We don't want to reset the arm position (as per moses's request)
 RightArm.reset_position()
